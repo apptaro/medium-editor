@@ -209,9 +209,20 @@
                 paragraphs = pastedPlain.split(/[\r\n]+/g);
                 // If there are no \r\n in data, don't wrap in <p>
                 if (paragraphs.length > 1) {
-                    for (p = 0; p < paragraphs.length; p += 1) {
-                        if (paragraphs[p] !== '') {
-                            html += '<p>' + MediumEditor.util.htmlEntities(paragraphs[p]) + '</p>';
+                    if (!(this.getEditorOption('disableParagraph') || (editable && editable.getAttribute('data-disable-paragraph')))) {
+                        for (p = 0; p < paragraphs.length; p += 1) {
+                            if (paragraphs[p] !== '') {
+                                html += '<p>' + MediumEditor.util.htmlEntities(paragraphs[p]) + '</p>';
+                            }
+                        }
+                    } else {
+                        for (p = 0; p < paragraphs.length; p += 1) {
+                            if (paragraphs[p] !== '') {
+                                if (html) {
+                                    html += '<br>';
+                                }
+                                html += MediumEditor.util.htmlEntities(paragraphs[p]);
+                            }
                         }
                     }
                 } else {

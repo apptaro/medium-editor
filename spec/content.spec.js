@@ -411,6 +411,31 @@ describe('Content TestCase', function () {
             expect(document.execCommand).not.toHaveBeenCalledWith('formatBlock', false, 'p');
         });
 
+        it('with disableParagraph = true, br should be inserted, and should not call formatBlock', function () {
+            this.el.innerHTML = 'lorem ipsum';
+
+            var editor = this.newMediumEditor('.editor', {
+                    disableReturn: false,
+                    disableParagraph: true
+                }),
+                elm = editor.elements[0];
+
+            spyOn(document, 'execCommand').and.callThrough();
+
+            placeCursorInsideElement(elm.firstChild, 1);
+
+            fireEvent(elm, 'keydown', {
+                keyCode: MediumEditor.util.keyCode.ENTER
+            });
+            fireEvent(elm, 'keyup', {
+                keyCode: MediumEditor.util.keyCode.ENTER,
+                ctrlKey: true
+            });
+
+            expect(elm.innerHTML).toBe('l<br>orem ipsum');
+            expect(document.execCommand).not.toHaveBeenCalledWith('formatBlock', false, 'p');
+        });
+
         it('inside an anchor the anchors should be unlinked', function () {
             this.el.innerHTML = '<a href="#">test</a>';
             var editor = this.newMediumEditor('.editor'),

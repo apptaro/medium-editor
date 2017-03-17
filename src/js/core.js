@@ -55,7 +55,8 @@
         var p, node = MediumEditor.selection.getSelectionStart(this.options.ownerDocument),
             tagName = node.nodeName.toLowerCase(),
             isEmpty = /^(\s+|<br\/?>)?$/i,
-            isHeader = /h\d/i;
+            isHeader = /h\d/i,
+            element = MediumEditor.util.getContainerEditorElement(node);
 
         if (MediumEditor.util.isKey(event, [MediumEditor.util.keyCode.BACKSPACE, MediumEditor.util.keyCode.ENTER]) &&
                 // has a preceeding sibling
@@ -163,6 +164,11 @@
             event.preventDefault();
             MediumEditor.selection.moveCursor(this.options.ownerDocument, node.nextSibling);
             node.parentElement.removeChild(node);
+        } else if (MediumEditor.util.isKey(event, MediumEditor.util.keyCode.ENTER) &&
+                (this.options.disableParagraph || element.getAttribute('data-disable-paragraph'))) {
+            var br = (MediumEditor.selection.getCaretOffsets(node).right === 0) ? '<br><br>' : '<br>';
+            MediumEditor.util.insertHTMLCommand(this.options.ownerDocument, br);
+            event.preventDefault();
         }
     }
 

@@ -100,6 +100,7 @@ describe('Initialization TestCase', function () {
                 delay: 0,
                 disableReturn: false,
                 disableDoubleReturn: false,
+                disableParagraph: false,
                 disableExtraSpaces: false,
                 disableEditing: false,
                 autoLink: false,
