@@ -570,6 +570,57 @@ describe('Anchor Button TestCase', function () {
             expect(link).not.toBeNull();
         });
 
+        it('should create a link if url is validated with linkValidator option', function () {
+            spyOn(MediumEditor.prototype, 'createLink').and.callThrough();
+            var editor = this.newMediumEditor('.editor', {
+                anchor: {
+                    linkValidator: function (url) {
+                        return url.match(/http:\/\/good\.com\/.*/);
+                    }
+                }
+            }),
+                anchorExtension = editor.getExtensionByName('anchor'),
+                toolbar = editor.getExtensionByName('toolbar'),
+                button, input;
+
+            selectElementContents(editor.elements[0]);
+            button = toolbar.getToolbarElement().querySelector('[data-action="createLink"]');
+            fireEvent(button, 'click');
+            input = anchorExtension.getInput();
+            input.value = 'http://good.com/';
+            fireEvent(input, 'keyup', {
+                keyCode: MediumEditor.util.keyCode.ENTER
+            });
+            expect(editor.createLink).toHaveBeenCalled();
+            // A trailing <br> may be added when insertHTML is used to add the link internally.
+            expect(this.el.innerHTML.indexOf('<a href="http://good.com/">lorem ipsum</a>')).toBe(0);
+        });
+
+        it('should not close the link form if url is not validated with linkValidator option', function () {
+            spyOn(MediumEditor.prototype, 'createLink').and.callThrough();
+            var editor = this.newMediumEditor('.editor', {
+                anchor: {
+                    linkValidator: function (url) {
+                        return url.match(/http:\/\/good\.com\/.*/);
+                    }
+                }
+            }),
+                anchorExtension = editor.getExtensionByName('anchor'),
+                toolbar = editor.getExtensionByName('toolbar'),
+                button, input;
+
+            selectElementContents(editor.elements[0]);
+            button = toolbar.getToolbarElement().querySelector('[data-action="createLink"]');
+            fireEvent(button, 'click');
+            input = anchorExtension.getInput();
+            input.value = 'http://bad.com/';
+            fireEvent(input, 'keyup', {
+                keyCode: MediumEditor.util.keyCode.ENTER
+            });
+            expect(editor.createLink).not.toHaveBeenCalled();
+            expect(anchorExtension.isDisplayed()).toBe(true);
+        });
+
         it('should add target="_blank" when "open in a new window" checkbox is checked', function () {
             var editor = this.newMediumEditor('.editor', {
                 anchor: {

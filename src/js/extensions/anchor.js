@@ -21,6 +21,11 @@
          */
         linkValidation: false,
 
+        /* linkValidator: [function]
+         * supply a function to validate a link url which returns true if valid.
+         */
+        linkValidator: null,
+
         /* placeholderText: [string]  (previously options.anchorInputPlaceholder)
          * text to be shown as placeholder of the anchor input.
          */
@@ -222,6 +227,9 @@
 
         doFormSave: function () {
             var opts = this.getFormOpts();
+            if (this.linkValidator && !this.linkValidator(opts.value)) {
+                return;
+            }
             this.completeFormSave(opts);
         },
 
