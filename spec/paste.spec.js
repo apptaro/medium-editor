@@ -230,7 +230,7 @@ describe('Pasting content', function () {
 
             pasteHandler.handlePaste(evt, editorEl);
             jasmine.clock().tick(100);
-            expect(editorEl.innerHTML).toEqual('One<br>Two<br>Three<br>'); // last br should not be added, but for this test system, it is just added, so ignore it.
+            expect(editorEl.innerHTML).toEqual('One<br>Two<br>Three<br>'); // last br is added when pasting over span tag selection.added, so ignore it.
 
         });
 
