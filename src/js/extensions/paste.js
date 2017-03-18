@@ -146,6 +146,28 @@
          */
         unwrapTags: [],
 
+        /* allowedClasses: [Array]
+         * list of classes not to be removed during paste when __cleanPastedHTML__ is `true` or when
+         * calling `cleanPaste(text)` or `pasteHTML(html, options)` helper methods.
+         * no classes are removed when an empty array is specified.
+         */
+        allowedClasses: [],
+
+        /* allowedAttrs: [Array]
+         * list of element attributes not to be removed during paste when __cleanPastedHTML__ is `true` or when
+         * calling `cleanPaste(text)` or `pasteHTML(html, options)` helper methods.
+         * no attributes are removed when an empty array is specified.
+         */
+        allowedAttrs: [],
+
+        /* unwrapTags: [Array]
+         * list of element tag names not to be unwrapped (remove the element tag but retain its child elements)
+         * during paste when __cleanPastedHTML__ is `true` or when
+         * calling `cleanPaste(text)` or `pasteHTML(html, options)` helper methods.
+         * no tags are removed when an empty array is specified.
+         */
+        allowedTags: [],
+
         init: function () {
             MediumEditor.Extension.prototype.init.apply(this, arguments);
 
@@ -441,10 +463,13 @@
             options = MediumEditor.util.defaults({}, options, {
                 cleanAttrs: this.cleanAttrs,
                 cleanTags: this.cleanTags,
-                unwrapTags: this.unwrapTags
+                unwrapTags: this.unwrapTags,
+                allowedClasses: this.allowedClasses,
+                allowedAttrs: this.allowedAttrs,
+                allowedTags: this.allowedTags
             });
 
-            var elList, workEl, i, fragmentBody, pasteBlock = this.document.createDocumentFragment();
+            var elList, workEl, i, j, fragmentBody, pasteBlock = this.document.createDocumentFragment();
 
             pasteBlock.appendChild(this.document.createElement('body'));
 
@@ -464,6 +489,30 @@
                 MediumEditor.util.cleanupAttrs(workEl, options.cleanAttrs);
                 MediumEditor.util.cleanupTags(workEl, options.cleanTags);
                 MediumEditor.util.unwrapTags(workEl, options.unwrapTags);
+
+                if (options.allowedClasses.length > 0) {
+                    for (j = workEl.classList.length - 1; j >= 0; j--) {
+                        var cls = workEl.classList[j];
+                        if (options.allowedClasses.indexOf(cls) === -1) {
+                            workEl.classList.remove(cls);
+                        }
+                    }
+                }
+
+                if (options.allowedAttrs.length > 0) {
+                    for (j = workEl.attributes.length - 1; j >= 0; j--) {
+                        var attr = workEl.attributes[j].name;
+                        if (options.allowedAttrs.indexOf(attr) === -1) {
+                            workEl.removeAttribute(attr);
+                        }
+                    }
+                }
+
+                if (options.allowedTags.length > 0) {
+                    if (options.allowedTags.indexOf(workEl.nodeName.toLowerCase()) === -1) {
+                        MediumEditor.util.unwrap(workEl, document);
+                    }
+                }
             }
 
             MediumEditor.util.insertHTMLCommand(this.document, fragmentBody.innerHTML.replace(/&nbsp;/g, ' '));
