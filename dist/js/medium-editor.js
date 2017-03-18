@@ -3675,6 +3675,11 @@ MediumEditor.extensions = {};
          */
         linkValidation: false,
 
+        /* linkValidator: [function]
+         * supply a function to validate a link url which returns true if valid.
+         */
+        linkValidator: null,
+
         /* placeholderText: [string]  (previously options.anchorInputPlaceholder)
          * text to be shown as placeholder of the anchor input.
          */
@@ -3876,6 +3881,9 @@ MediumEditor.extensions = {};
 
         doFormSave: function () {
             var opts = this.getFormOpts();
+            if (this.linkValidator && !this.linkValidator(opts.value)) {
+                return;
+            }
             this.completeFormSave(opts);
         },
 
@@ -5279,6 +5287,28 @@ MediumEditor.extensions = {};
          */
         unwrapTags: [],
 
+        /* allowedClasses: [Array]
+         * list of classes not to be removed during paste when __cleanPastedHTML__ is `true` or when
+         * calling `cleanPaste(text)` or `pasteHTML(html, options)` helper methods.
+         * no classes are removed when an empty array is specified.
+         */
+        allowedClasses: [],
+
+        /* allowedAttrs: [Array]
+         * list of element attributes not to be removed during paste when __cleanPastedHTML__ is `true` or when
+         * calling `cleanPaste(text)` or `pasteHTML(html, options)` helper methods.
+         * no attributes are removed when an empty array is specified.
+         */
+        allowedAttrs: [],
+
+        /* unwrapTags: [Array]
+         * list of element tag names not to be unwrapped (remove the element tag but retain its child elements)
+         * during paste when __cleanPastedHTML__ is `true` or when
+         * calling `cleanPaste(text)` or `pasteHTML(html, options)` helper methods.
+         * no tags are removed when an empty array is specified.
+         */
+        allowedTags: [],
+
         init: function () {
             MediumEditor.Extension.prototype.init.apply(this, arguments);
 
@@ -5342,9 +5372,20 @@ MediumEditor.extensions = {};
                 paragraphs = pastedPlain.split(/[\r\n]+/g);
                 // If there are no \r\n in data, don't wrap in <p>
                 if (paragraphs.length > 1) {
-                    for (p = 0; p < paragraphs.length; p += 1) {
-                        if (paragraphs[p] !== '') {
-                            html += '<p>' + MediumEditor.util.htmlEntities(paragraphs[p]) + '</p>';
+                    if (!(this.getEditorOption('disableParagraph') || (editable && editable.getAttribute('data-disable-paragraph')))) {
+                        for (p = 0; p < paragraphs.length; p += 1) {
+                            if (paragraphs[p] !== '') {
+                                html += '<p>' + MediumEditor.util.htmlEntities(paragraphs[p]) + '</p>';
+                            }
+                        }
+                    } else {
+                        for (p = 0; p < paragraphs.length; p += 1) {
+                            if (paragraphs[p] !== '') {
+                                if (html) {
+                                    html += '<br>';
+                                }
+                                html += MediumEditor.util.htmlEntities(paragraphs[p]);
+                            }
                         }
                     }
                 } else {
@@ -5563,10 +5604,13 @@ MediumEditor.extensions = {};
             options = MediumEditor.util.defaults({}, options, {
                 cleanAttrs: this.cleanAttrs,
                 cleanTags: this.cleanTags,
-                unwrapTags: this.unwrapTags
+                unwrapTags: this.unwrapTags,
+                allowedClasses: this.allowedClasses,
+                allowedAttrs: this.allowedAttrs,
+                allowedTags: this.allowedTags
             });
 
-            var elList, workEl, i, fragmentBody, pasteBlock = this.document.createDocumentFragment();
+            var elList, workEl, i, j, fragmentBody, pasteBlock = this.document.createDocumentFragment();
 
             pasteBlock.appendChild(this.document.createElement('body'));
 
@@ -5586,6 +5630,30 @@ MediumEditor.extensions = {};
                 MediumEditor.util.cleanupAttrs(workEl, options.cleanAttrs);
                 MediumEditor.util.cleanupTags(workEl, options.cleanTags);
                 MediumEditor.util.unwrapTags(workEl, options.unwrapTags);
+
+                if (options.allowedClasses.length > 0) {
+                    for (j = workEl.classList.length - 1; j >= 0; j--) {
+                        var cls = workEl.classList[j];
+                        if (options.allowedClasses.indexOf(cls) === -1) {
+                            workEl.classList.remove(cls);
+                        }
+                    }
+                }
+
+                if (options.allowedAttrs.length > 0) {
+                    for (j = workEl.attributes.length - 1; j >= 0; j--) {
+                        var attr = workEl.attributes[j].name;
+                        if (options.allowedAttrs.indexOf(attr) === -1) {
+                            workEl.removeAttribute(attr);
+                        }
+                    }
+                }
+
+                if (options.allowedTags.length > 0) {
+                    if (options.allowedTags.indexOf(workEl.nodeName.toLowerCase()) === -1) {
+                        MediumEditor.util.unwrap(workEl, document);
+                    }
+                }
             }
 
             MediumEditor.util.insertHTMLCommand(this.document, fragmentBody.innerHTML.replace(/&nbsp;/g, ' '));
@@ -6600,7 +6668,8 @@ MediumEditor.extensions = {};
         var p, node = MediumEditor.selection.getSelectionStart(this.options.ownerDocument),
             tagName = node.nodeName.toLowerCase(),
             isEmpty = /^(\s+|<br\/?>)?$/i,
-            isHeader = /h\d/i;
+            isHeader = /h\d/i,
+            element = MediumEditor.util.getContainerEditorElement(node);
 
         if (MediumEditor.util.isKey(event, [MediumEditor.util.keyCode.BACKSPACE, MediumEditor.util.keyCode.ENTER]) &&
                 // has a preceeding sibling
@@ -6708,6 +6777,11 @@ MediumEditor.extensions = {};
             event.preventDefault();
             MediumEditor.selection.moveCursor(this.options.ownerDocument, node.nextSibling);
             node.parentElement.removeChild(node);
+        } else if (MediumEditor.util.isKey(event, MediumEditor.util.keyCode.ENTER) &&
+                (this.options.disableParagraph || element.getAttribute('data-disable-paragraph'))) {
+            var br = (MediumEditor.selection.getCaretOffsets(node).right === 0) ? '<br><br>' : '<br>';
+            MediumEditor.util.insertHTMLCommand(this.options.ownerDocument, br);
+            event.preventDefault();
         }
     }
 
@@ -7840,6 +7914,7 @@ MediumEditor.extensions = {};
         delay: 0,
         disableReturn: false,
         disableDoubleReturn: false,
+        disableParagraph: false,
         disableExtraSpaces: false,
         disableEditing: false,
         autoLink: false,
