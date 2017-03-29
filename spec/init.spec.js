@@ -102,6 +102,7 @@ describe('Initialization TestCase', function () {
                 disableDoubleReturn: false,
                 disableParagraph: false,
                 disableExtraSpaces: false,
+                disableListItemIndent: false,
                 disableEditing: false,
                 autoLink: false,
                 elementsContainer: document.body,

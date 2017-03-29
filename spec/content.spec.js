@@ -99,6 +99,19 @@ describe('Content TestCase', function () {
             });
             expect(this.el.innerHTML).toBe('<pre>    lorem ipsum</pre>');
         });
+
+        it('should do nothing when within an <li> with disableListItemIndent = true', function () {
+            this.el.innerHTML = '<ol><li>lorem</li><li>ipsum</li></ol>';
+            var editor = this.newMediumEditor('.editor', { disableListItemIndent: true }),
+                target = editor.elements[0].querySelector('ol').lastChild;
+            spyOn(document, 'execCommand').and.callThrough();
+            selectElementContents(target);
+            fireEvent(target, 'keydown', {
+                keyCode: MediumEditor.util.keyCode.TAB
+            });
+            expect(document.execCommand).not.toHaveBeenCalledWith('indent', false, null);
+            expect(this.el.innerHTML).toBe('<ol><li>lorem</li><li>ipsum</li></ol>');
+        });
     });
 
     describe('when the space key is pressed', function () {

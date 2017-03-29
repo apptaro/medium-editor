@@ -28,7 +28,7 @@
         }
     }
 
-    function handleTabKeydown(event) {
+    function handleTabKeydown(event, element) {
         // Override tab only for pre nodes
         var node = MediumEditor.selection.getSelectionStart(this.options.ownerDocument),
             tag = node && node.nodeName.toLowerCase();
@@ -38,15 +38,17 @@
             MediumEditor.util.insertHTMLCommand(this.options.ownerDocument, '    ');
         }
 
-        // Tab to indent list structures!
-        if (MediumEditor.util.isListItem(node)) {
-            event.preventDefault();
+        if (!(this.options.disableListItemIndent || element.getAttribute('data-disable-list-item-indent'))) {
+            // Tab to indent list structures!
+            if (MediumEditor.util.isListItem(node)) {
+                event.preventDefault();
 
-            // If Shift is down, outdent, otherwise indent
-            if (event.shiftKey) {
-                this.options.ownerDocument.execCommand('outdent', false, null);
-            } else {
-                this.options.ownerDocument.execCommand('indent', false, null);
+                // If Shift is down, outdent, otherwise indent
+                if (event.shiftKey) {
+                    this.options.ownerDocument.execCommand('outdent', false, null);
+                } else {
+                    this.options.ownerDocument.execCommand('indent', false, null);
+                }
             }
         }
     }
