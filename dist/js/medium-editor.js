@@ -5309,6 +5309,14 @@ MediumEditor.extensions = {};
          */
         allowedTags: [],
 
+        /* postCleanReplacements: [Array]
+         * custom pairs (2 element arrays) of RegExp and replacement text to use
+         * during past when __cleanPastedHTML__ is `true` or when
+         * calling `cleanPaste(text)` or `pasteHTML(html, options)` helper methods.
+         * These replacements are executed after tag cleanup.
+         */
+        postCleanReplacements: [],
+
         init: function () {
             MediumEditor.Extension.prototype.init.apply(this, arguments);
 
@@ -5656,7 +5664,13 @@ MediumEditor.extensions = {};
                 }
             }
 
-            MediumEditor.util.insertHTMLCommand(this.document, fragmentBody.innerHTML.replace(/&nbsp;/g, ' '));
+            var cleanedHtml = fragmentBody.innerHTML.replace(/&nbsp;/g, ' '),
+                replacements = (this.postCleanReplacements || []);
+            for (i = 0; i < replacements.length; i += 1) {
+                cleanedHtml = cleanedHtml.replace(replacements[i][0], replacements[i][1]);
+            }
+
+            MediumEditor.util.insertHTMLCommand(this.document, cleanedHtml);
         },
 
         // TODO (6.0): Make this an internal helper instead of member of paste handler
