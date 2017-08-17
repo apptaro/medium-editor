@@ -643,6 +643,7 @@ describe('Anchor Button TestCase', function () {
             link = editor.elements[0].querySelector('a');
             expect(link).not.toBeNull();
             expect(link.target).toBe('_blank');
+            expect(link.rel).toBe('noopener noreferrer');
         });
 
         it('should add target="_blank" when respective option is set to true', function () {
@@ -659,6 +660,7 @@ describe('Anchor Button TestCase', function () {
             link = editor.elements[0].querySelector('a');
             expect(link).not.toBeNull();
             expect(link.target).toBe('_blank');
+            expect(link.rel).toBe('noopener noreferrer');
         });
 
         it('should create a button when user selects this option and presses enter', function () {
@@ -768,6 +770,7 @@ describe('Anchor Button TestCase', function () {
             fireEvent(anchorExtension.getForm().querySelector('a.medium-editor-toolbar-save'), 'click');
             link = editor.elements[0].querySelector('a');
             expect(link.target).toBe('_blank');
+            expect(link.rel).toBe('noopener noreferrer');
 
             selectElementContentsAndFire(editor.elements[0]);
             anchorExtension.showForm('http://test.com');
