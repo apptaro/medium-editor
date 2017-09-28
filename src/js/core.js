@@ -176,7 +176,8 @@
 
     function handleKeyup(event) {
         var node = MediumEditor.selection.getSelectionStart(this.options.ownerDocument),
-            tagName;
+            tagName,
+            element = MediumEditor.util.getContainerEditorElement(node);
 
         if (!node) {
             return;
@@ -199,7 +200,7 @@
             // For anchor tags, unlink
             if (tagName === 'a') {
                 this.options.ownerDocument.execCommand('unlink', false, null);
-            } else if (!event.shiftKey && !event.ctrlKey) {
+            } else if (!event.shiftKey && !event.ctrlKey && !(this.options.disableParagraph || element.getAttribute('data-disable-paragraph'))) {
                 this.options.ownerDocument.execCommand('formatBlock', false, 'p');
             }
         }
