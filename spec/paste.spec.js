@@ -802,7 +802,7 @@ describe('Pasting content', function () {
             editor.pasteHTML(
                 '<table class="medium-editor-table" dir="ltr" style="border: 1px solid red;"><tbody><tr><td>test</td></tr></tbody></table>' +
                 '<div><i>test</i><meta name="description" content="test" /><b class="okclass ngclass" style="font-size:110%;">test</b></div>' +
-                '<div><i>test</i><sub><b>test</b></sub><sup>test</sup></div>'
+                '<div><i class="ngclass">test</i><sub><b>test</b></sub><sup>test</sup></div>'
             );
             expect(editor.elements[0].innerHTML).toBe(
                 'test' +

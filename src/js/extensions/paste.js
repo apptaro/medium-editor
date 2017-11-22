@@ -507,6 +507,9 @@
                             workEl.classList.remove(cls);
                         }
                     }
+                    if (workEl.classList.length === 0) {
+                        workEl.removeAttribute('class');
+                    }
                 }
 
                 if (options.allowedAttrs.length > 0) {
